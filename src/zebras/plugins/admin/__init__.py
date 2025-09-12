@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from slack_sdk.web.async_client import AsyncWebClient
+import logging
 
 from ...plugin import Registry
 from ...app_context import get_context
@@ -15,18 +16,16 @@ async def _client() -> AsyncWebClient:
 
 
 def register(reg: Registry) -> None:
-    @reg.events.on("app_home_opened")
-    async def on_home_opened(payload: Dict[str, Any]) -> None:
-        user = payload.get("event", {}).get("user")
-        client = await _client()
+    log = logging.getLogger("zebras.plugins.admin")
+
+    async def build_home_view() -> dict:
         ctx = get_context()
         repo = InviteSettingsRepository(ctx.engine)
         s = await repo.get()
         admin_ch = s.admin_channel_id if s else None
         audit_ch = s.audit_channel_id if s else None
         notify = (s.notify_on_join if s else False)
-
-        view = {
+        return {
             "type": "home",
             "blocks": [
                 {"type": "section", "text": {"type": "mrkdwn", "text": "*This is still a work in progress.*\nIn the meantime, learn more about ZEBRAS and what it can do by visiting the *About* tab."}},
@@ -42,7 +41,17 @@ def register(reg: Registry) -> None:
                 ]},
             ],
         }
-        await client.views_publish(user_id=user, view=view)
+
+    @reg.events.on("app_home_opened")
+    async def on_home_opened(payload: Dict[str, Any]) -> None:
+        user = payload.get("event", {}).get("user")
+        client = await _client()
+        view = await build_home_view()
+        try:
+            await client.views_publish(user_id=user, view=view)
+            log.info("Published Home view for user=%s", user)
+        except Exception as e:
+            log.exception("views.publish failed for user=%s: %s", user, e)
 
     @reg.interactions.action("open_settings")
     async def open_settings(payload: Dict[str, Any]) -> None:
@@ -81,7 +90,11 @@ def register(reg: Registry) -> None:
                  "label": {"type": "plain_text", "text": "DM message"}},
             ],
         }
-        await client.views_open(trigger_id=trigger_id, view=view)
+        try:
+            await client.views_open(trigger_id=trigger_id, view=view)
+            log.info("Opened admin settings modal for trigger=%s", trigger_id)
+        except Exception as e:
+            log.exception("views.open failed: %s", e)
 
     @reg.interactions.view_submission("admin_settings")
     async def admin_settings_submit(payload: Dict[str, Any]) -> None:
@@ -111,3 +124,16 @@ def register(reg: Registry) -> None:
         ctx = get_context()
         repo = InviteSettingsRepository(ctx.engine)
         await repo.upsert(admin_channel_id=admin_channel, audit_channel_id=audit_channel, notify_on_join=notify, dm_message=dm_message)
+
+    @reg.commands.slash("/zebras-home")
+    async def zebras_home_cmd(payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Debug: force (re)publish the Home tab for the invoking user."""
+        user = payload.get("user_id")
+        client = await _client()
+        view = await build_home_view()
+        try:
+            await client.views_publish(user_id=user, view=view)
+            return {"response_type": "ephemeral", "text": "Home tab published."}
+        except Exception as e:
+            log.exception("views.publish via /zebras-home failed for user=%s: %s", user, e)
+            return {"response_type": "ephemeral", "text": f"Failed to publish Home: {e}"}

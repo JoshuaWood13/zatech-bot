@@ -6,12 +6,15 @@ import logging
 import time
 from typing import Any, Dict
 
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
+from fastapi import FastAPI, Request, HTTPException, Form
+from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse, RedirectResponse
 from starlette.datastructures import FormData
 import json
 
 from ..router import Router
+from ..app_context import get_context
+from ..plugins.invite.repository import InviteSettingsRepository
+from ..rules.repository import ChannelRuleRepository
 from ..plugin.registry import Registry
 
 
@@ -39,20 +42,126 @@ def create_app(router: Router, signing_secret: str | None, registry: Registry) -
     async def healthz() -> Dict[str, str]:
         return {"status": "ok"}
 
+    async def _list_channels() -> list[dict]:
+        try:
+            client = await get_context().web_client()
+        except Exception:
+            return []
+        channels: list[dict] = []
+        cursor = None
+        types = "public_channel,private_channel"
+        for _ in range(3):  # fetch up to ~3 pages to keep it light
+            resp = await client.conversations_list(limit=200, cursor=cursor, types=types)
+            channels.extend([{"id": c.get("id"), "name": c.get("name")} for c in resp.get("channels", [])])
+            cursor = resp.get("response_metadata", {}).get("next_cursor")
+            if not cursor:
+                break
+        channels.sort(key=lambda x: (x.get("name") or ""))
+        return channels
+
+    def _option_list(name: str, items: list[dict], selected: str | None) -> str:
+        opts = [f"<option value=\"\">-- select {name} --</option>"]
+        for it in items:
+            sel = " selected" if selected and it.get("id") == selected else ""
+            opts.append(f"<option value=\"{it.get('id')}\"{sel}># {it.get('name')}</option>")
+        return "\n".join(opts)
+
     @app.get("/")
-    async def index() -> HTMLResponse:
-        html = (
-            "<html><head><title>ZEBRAS</title></head><body>"
-            "<h1>ZEBRAS</h1>"
-            "<p>This is still a work in progress.<br/>"
-            "In the meantime, learn more about ZEBRAS and what it can do by visiting the About tab in Slack or reading the docs in this repository.</p>"
-            "<ul>"
-            "<li><a href=\"/healthz\">Health</a></li>"
-            "<li><a href=\"/docs/README.md\">Docs (repo)</a></li>"
-            "</ul>"
-            "</body></html>"
-        )
+    async def admin_index() -> HTMLResponse:
+        ctx = get_context()
+        inv_repo = InviteSettingsRepository(ctx.engine)
+        rules_repo = ChannelRuleRepository(ctx.engine)
+        settings = await inv_repo.get()
+        channels = await _list_channels()
+
+        channel_options_admin = _option_list("admin channel", channels, settings.admin_channel_id if settings else None)
+        channel_options_audit = _option_list("audit channel", channels, settings.audit_channel_id if settings else None)
+
+        html = f"""
+        <html>
+          <head>
+            <title>ZEBRAS Admin</title>
+            <style>
+              body {{ font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif; margin: 24px; }}
+              h1 {{ margin-bottom: 0; }}
+              .section {{ border: 1px solid #ddd; padding: 16px; margin: 16px 0; border-radius: 8px; }}
+              label {{ display: block; margin: 8px 0 4px; font-weight: 600; }}
+              input[type=text], select, textarea {{ width: 100%; padding: 8px; }}
+              .row {{ display: flex; gap: 16px; }}
+              .row > div {{ flex: 1; }}
+              .actions {{ margin-top: 12px; }}
+              button {{ padding: 8px 12px; }}
+            </style>
+          </head>
+          <body>
+            <h1>ZEBRAS Admin</h1>
+            <p><a href="/healthz">Health</a></p>
+
+            <div class="section">
+              <h2>Invite Helper</h2>
+              <form method="post" action="/admin/invite">
+                <div class="row">
+                  <div>
+                    <label>Admin channel</label>
+                    <select name="admin_channel_id">{channel_options_admin}</select>
+                  </div>
+                  <div>
+                    <label>Audit channel</label>
+                    <select name="audit_channel_id">{channel_options_audit}</select>
+                  </div>
+                </div>
+                <label><input type="checkbox" name="notify_on_join" {'checked' if (settings and settings.notify_on_join) else ''}/> Notify on join</label>
+                <label>DM message</label>
+                <textarea name="dm_message" rows="3">{(settings.dm_message if settings and settings.dm_message else '')}</textarea>
+                <div class="actions"><button type="submit">Save Invite Settings</button></div>
+              </form>
+            </div>
+
+            <div class="section">
+              <h2>Per-channel Rules</h2>
+              <form method="post" action="/admin/rules">
+                <div>
+                  <label>Channel</label>
+                  <select name="channel_id">{_option_list('channel', channels, None)}</select>
+                </div>
+                <div class="row">
+                  <div><label><input type="checkbox" name="allow_bots" checked/> Allow bot messages</label></div>
+                  <div><label><input type="checkbox" name="allow_top" checked/> Allow top-level posts</label></div>
+                  <div><label><input type="checkbox" name="allow_threads" checked/> Allow thread replies</label></div>
+                </div>
+                <div class="actions"><button type="submit">Save Channel Rules</button></div>
+                <p style="color:#666">Note: current values are not auto-loaded when you change the channel in this basic UI. Use /rules list in Slack to verify, or submit desired settings here.</p>
+              </form>
+            </div>
+          </body>
+        </html>
+        """
         return HTMLResponse(content=html)
+
+    @app.post("/admin/invite")
+    async def admin_invite_update(request: Request) -> RedirectResponse:
+        form: FormData = await request.form()
+        admin_channel_id = form.get("admin_channel_id") or None
+        audit_channel_id = form.get("audit_channel_id") or None
+        notify_on_join = True if form.get("notify_on_join") is not None else False
+        dm_message = form.get("dm_message") or None
+        ctx = get_context()
+        repo = InviteSettingsRepository(ctx.engine)
+        await repo.upsert(admin_channel_id=admin_channel_id, audit_channel_id=audit_channel_id, notify_on_join=notify_on_join, dm_message=dm_message)
+        return RedirectResponse(url="/", status_code=303)
+
+    @app.post("/admin/rules")
+    async def admin_rules_update(request: Request) -> RedirectResponse:
+        form: FormData = await request.form()
+        channel_id = form.get("channel_id")
+        allow_bots = form.get("allow_bots") is not None
+        allow_top = form.get("allow_top") is not None
+        allow_threads = form.get("allow_threads") is not None
+        if channel_id:
+            ctx = get_context()
+            repo = ChannelRuleRepository(ctx.engine)
+            await repo.upsert(channel_id, allow_bots=allow_bots, allow_top_level_posts=allow_top, allow_thread_replies=allow_threads)
+        return RedirectResponse(url="/", status_code=303)
 
     @app.post("/slack/events")
     async def slack_events(request: Request) -> Any:

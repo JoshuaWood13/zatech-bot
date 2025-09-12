@@ -54,6 +54,7 @@ Running (HTTP Events)
 - Start: `zebras http --port 43117` (or export `PORT=43117`)
 - Point Slack Event Subscriptions to `https://<host>/slack/events` (URL verification handled).
 - Slash commands URL: `https://<host>/slack/commands`.
+- Admin UI (no auth): Visit `https://<host>/` to configure Invite Helper and per-channel rules.
 - Local test (no signature):
   - `curl -X POST localhost:43117/slack/events -H 'Content-Type: application/json' -d '{"type":"event_callback","event":{"type":"message","user":"U123","channel":"C123","text":"hi"}}'`
   - `curl -X POST localhost:43117/slack/commands -H 'Content-Type: application/x-www-form-urlencoded' --data 'command=%2Frules&text=list'`
@@ -73,6 +74,7 @@ Limitations (current)
 - Idempotency/rate-limit middleware and rules enforcement are in progress.
 Docker Quick Start
 - HTTP mode: `docker compose up --build zebras-http` (exposes `http://localhost:43117`).
+- Admin UI: open `http://localhost:43117/`.
 - Socket mode: `docker compose up --build zebras-socket`.
 - Worker: `docker compose up --build zebras-worker`.
 - Set Slack envs in a top-level `.env` file or export them before running compose.
