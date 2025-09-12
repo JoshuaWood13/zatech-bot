@@ -4,11 +4,15 @@ set -euo pipefail
 # Modes: http | socket | worker
 MODE="${MODE:-http}"
 
-echo "[entrypoint] Running DB migrations..."
-zebras db upgrade || {
-  echo "[entrypoint] Migration failed" >&2
-  exit 1
-}
+if [ "${MIGRATE_ON_START:-0}" = "1" ]; then
+  echo "[entrypoint] Running DB migrations..."
+  if ! zebras db upgrade; then
+    echo "[entrypoint] Migration failed" >&2
+    exit 1
+  fi
+else
+  echo "[entrypoint] Skipping DB migrations (MIGRATE_ON_START=${MIGRATE_ON_START:-0})"
+fi
 
 case "$MODE" in
   http)

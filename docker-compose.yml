@@ -27,6 +27,7 @@ services:
     build: .
     environment:
       MODE: http
+      MIGRATE_ON_START: "1"
       ZEBRAS_HTTP_HOST: 0.0.0.0
       ZEBRAS_HTTP_PORT: 43117
       LOG_LEVEL: INFO
@@ -50,6 +51,7 @@ services:
     build: .
     environment:
       MODE: socket
+      MIGRATE_ON_START: "0"
       LOG_LEVEL: INFO
       SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN:-}
       SLACK_APP_TOKEN: ${SLACK_APP_TOKEN:-}
@@ -65,6 +67,7 @@ services:
     build: .
     environment:
       MODE: worker
+      MIGRATE_ON_START: "0"
       LOG_LEVEL: INFO
       DATABASE_URL: postgresql+asyncpg://zebras:zebras@postgres:5432/zebras
       REDIS_URL: redis://redis:6379/0

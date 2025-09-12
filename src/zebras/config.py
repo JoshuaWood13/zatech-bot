@@ -10,7 +10,7 @@ class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     # Slack
-    slack_bot_token: str = Field(alias="SLACK_BOT_TOKEN")
+    slack_bot_token: Optional[str] = Field(default=None, alias="SLACK_BOT_TOKEN")
     slack_app_token: Optional[str] = Field(default=None, alias="SLACK_APP_TOKEN")
     slack_signing_secret: Optional[str] = Field(default=None, alias="SLACK_SIGNING_SECRET")
 

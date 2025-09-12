@@ -41,6 +41,8 @@ def socket() -> None:
     setup_logging(s.log_level)
     if not s.slack_app_token:
         raise SystemExit("SLACK_APP_TOKEN required for socket mode")
+    if not s.slack_bot_token:
+        raise SystemExit("SLACK_BOT_TOKEN required for socket mode")
     router = Router()
     reg = Registry()
     _load_plugins(reg)
