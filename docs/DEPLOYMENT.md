@@ -7,8 +7,8 @@ Local Compose
   - `SLACK_SIGNING_SECRET=...` (for HTTP) or `SLACK_APP_TOKEN=...` (for Socket)
 - Bring up Postgres + Redis + HTTP app:
   - `docker compose up --build zebras-http`
-  - Compose publishes container port 43117 to a random host port. Find it via `docker compose ps`.
-  - Health check endpoint: `/healthz` on the published host port.
+  - Exposed locally at `http://localhost:5000` (host 5000 → container 43117).
+  - Health check endpoint: `http://localhost:5000/healthz`.
 - For Socket Mode instead:
   - `docker compose up --build zebras-socket`
 - Optional worker:

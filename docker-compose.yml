@@ -37,7 +37,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://zebras:zebras@postgres:5432/zebras
       REDIS_URL: redis://redis:6379/0
     ports:
-      - "43117" # publish container port 43117 to a random host port
+      - "5000:43117" # bind host 5000 -> container 43117
     depends_on:
       postgres:
         condition: service_healthy

@@ -72,8 +72,7 @@ Limitations (current)
 - Slash commands are wired; actions/views are pending.
 - Idempotency/rate-limit middleware and rules enforcement are in progress.
 Docker Quick Start
-- HTTP mode: `docker compose up --build zebras-http`.
-- Find the random host port mapped to 43117: `docker compose ps` (look under "Ports").
+- HTTP mode: `docker compose up --build zebras-http` (exposes `http://localhost:5000`).
 - Socket mode: `docker compose up --build zebras-socket`.
 - Worker: `docker compose up --build zebras-worker`.
 - Set Slack envs in a top-level `.env` file or export them before running compose.
