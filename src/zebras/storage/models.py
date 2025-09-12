@@ -53,3 +53,17 @@ class InviteSettings(Base):
     notify_on_join: Mapped[bool] = mapped_column(default=True)
     dm_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AutoResponderRule(Base):
+    __tablename__ = "auto_responder_rules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    phrase: Mapped[str] = mapped_column(Text)
+    response_text: Mapped[str] = mapped_column(Text)
+    match_type: Mapped[str] = mapped_column(String(16))  # contains|exact|regex
+    case_sensitive: Mapped[bool] = mapped_column(default=False)
+    channel_id: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, index=True)  # NULL = global
+    enabled: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

@@ -21,16 +21,10 @@ import os
 
 
 def _load_plugins(reg: Registry) -> None:
-    # For now, import built-in logging plugin. External discovery can be added later.
-    from .plugins.logging import register as logging_register
-    from .plugins.rules import register as rules_register
-    from .plugins.invite import register as invite_register
-    from .plugins.admin import register as admin_register
+    # Load only the Auto Responder plugin per current requirements.
+    from .plugins.autoresponder import register as autoresponder_register
 
-    logging_register(reg)
-    rules_register(reg)
-    invite_register(reg)
-    admin_register(reg)
+    autoresponder_register(reg)
 
 
 @click.group()
