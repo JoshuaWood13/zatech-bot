@@ -7,7 +7,7 @@ import time
 from typing import Any, Dict
 
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
 from starlette.datastructures import FormData
 import json
 
@@ -38,6 +38,21 @@ def create_app(router: Router, signing_secret: str | None, registry: Registry) -
     @app.get("/healthz")
     async def healthz() -> Dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/")
+    async def index() -> HTMLResponse:
+        html = (
+            "<html><head><title>ZEBRAS</title></head><body>"
+            "<h1>ZEBRAS</h1>"
+            "<p>This is still a work in progress.<br/>"
+            "In the meantime, learn more about ZEBRAS and what it can do by visiting the About tab in Slack or reading the docs in this repository.</p>"
+            "<ul>"
+            "<li><a href=\"/healthz\">Health</a></li>"
+            "<li><a href=\"/docs/README.md\">Docs (repo)</a></li>"
+            "</ul>"
+            "</body></html>"
+        )
+        return HTMLResponse(content=html)
 
     @app.post("/slack/events")
     async def slack_events(request: Request) -> Any:

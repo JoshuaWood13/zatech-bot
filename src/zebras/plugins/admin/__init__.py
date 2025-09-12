@@ -29,6 +29,7 @@ def register(reg: Registry) -> None:
         view = {
             "type": "home",
             "blocks": [
+                {"type": "section", "text": {"type": "mrkdwn", "text": "*This is still a work in progress.*\nIn the meantime, learn more about ZEBRAS and what it can do by visiting the *About* tab."}},
                 {"type": "header", "text": {"type": "plain_text", "text": "ZEBRAS Admin"}},
                 {"type": "section", "text": {"type": "mrkdwn", "text": "Quick settings and status"}},
                 {"type": "section", "fields": [
@@ -110,4 +111,3 @@ def register(reg: Registry) -> None:
         ctx = get_context()
         repo = InviteSettingsRepository(ctx.engine)
         await repo.upsert(admin_channel_id=admin_channel, audit_channel_id=audit_channel, notify_on_join=notify, dm_message=dm_message)
-
