@@ -19,7 +19,7 @@ Status: living checklist to reach feature parity with SlackCommunityHelper. Use 
 
 **Storage & Worker**
 - [x] [P0] SQLAlchemy models: event logs (message/user/channel)
-- [ ] [P0] SQLAlchemy models: rules, policies, audit logs
+- [x] [P0] SQLAlchemy models: per-channel rules
 - [x] [P0] Alembic migrations setup and first migration
 - [ ] [P0] Redis-backed idempotency set and locks
 - [ ] [P1] RQ job enqueue + helpers (retry policy, DLQ routing)

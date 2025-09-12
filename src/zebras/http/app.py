@@ -9,6 +9,7 @@ from typing import Any, Dict
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse, PlainTextResponse
 from starlette.datastructures import FormData
+import json
 
 from ..router import Router
 from ..plugin.registry import Registry
@@ -75,5 +76,34 @@ def create_app(router: Router, signing_secret: str | None, registry: Registry) -
         if result is None:
             result = {"response_type": "ephemeral", "text": "OK"}
         return JSONResponse(result)
+
+    @app.post("/slack/interactivity")
+    async def slack_interactivity(request: Request) -> Any:
+        body = await request.body()
+        if signing_secret:
+            verify_slack_signature(request, signing_secret, body)
+        form: FormData = await request.form()
+        payload_raw = form.get("payload")
+        if not payload_raw:
+            return JSONResponse({"error": "missing payload"}, status_code=400)
+        try:
+            payload = json.loads(payload_raw)
+        except Exception:
+            return JSONResponse({"error": "invalid payload"}, status_code=400)
+        t = payload.get("type")
+        if t == "block_actions":
+            action = (payload.get("actions") or [{}])[0]
+            cb = action.get("action_id") or action.get("callback_id") or payload.get("callback_id")
+            handler = registry.actions.get(cb)
+            if handler:
+                await handler(payload)
+            return JSONResponse({"ok": True})
+        if t == "view_submission":
+            cb = payload.get("view", {}).get("callback_id")
+            handler = registry.views.get(cb)
+            if handler:
+                await handler(payload)
+            return JSONResponse({"response_action": "clear"})
+        return JSONResponse({"ok": True})
 
     return app

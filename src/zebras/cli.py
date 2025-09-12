@@ -24,9 +24,13 @@ def _load_plugins(reg: Registry) -> None:
     # For now, import built-in logging plugin. External discovery can be added later.
     from .plugins.logging import register as logging_register
     from .plugins.rules import register as rules_register
+    from .plugins.invite import register as invite_register
+    from .plugins.admin import register as admin_register
 
     logging_register(reg)
     rules_register(reg)
+    invite_register(reg)
+    admin_register(reg)
 
 
 @click.group()
@@ -54,7 +58,7 @@ def socket() -> None:
     # Initialize context (DB + Redis)
     engine = create_engine(s.database_url)
     r = create_redis(s.redis_url)
-    set_context(AppContext(engine=engine, redis=r))
+    set_context(AppContext(engine=engine, redis=r, bot_token=s.slack_bot_token))
 
     app = SocketApp(s.slack_bot_token, s.slack_app_token, router, reg)
     asyncio.run(app.run())
@@ -77,7 +81,7 @@ def http(host: str | None, port: int | None) -> None:
     # Initialize context (DB + Redis)
     engine = create_engine(s.database_url)
     r = create_redis(s.redis_url)
-    set_context(AppContext(engine=engine, redis=r))
+    set_context(AppContext(engine=engine, redis=r, bot_token=s.slack_bot_token))
 
     app = create_app(router, s.slack_signing_secret, reg)
     uvicorn.run(app, host=host or s.http_host, port=port or s.http_port)

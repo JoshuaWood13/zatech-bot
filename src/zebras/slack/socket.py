@@ -53,6 +53,26 @@ class SocketApp:
             if response_url and result:
                 async with aiohttp.ClientSession() as session:
                     await session.post(response_url, json=result)
+        elif req.type == "interactive":
+            payload = req.payload
+            t = payload.get("type")
+            if t == "block_actions":
+                action = (payload.get("actions") or [{}])[0]
+                cb = action.get("action_id") or action.get("callback_id") or payload.get("callback_id")
+                handler = self.registry.actions.get(cb)
+                if handler:
+                    try:
+                        await handler(payload)
+                    except Exception:
+                        self.log.exception("Interactive handler error for %s", cb)
+            elif t == "view_submission":
+                cb = payload.get("view", {}).get("callback_id")
+                handler = self.registry.views.get(cb)
+                if handler:
+                    try:
+                        await handler(payload)
+                    except Exception:
+                        self.log.exception("View submission handler error for %s", cb)
 
     async def run(self) -> None:
         # Lazily create clients after loop is running
