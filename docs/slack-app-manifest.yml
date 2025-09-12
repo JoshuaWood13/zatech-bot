@@ -1,0 +1,60 @@
+_metadata:
+  major_version: 1
+  minor_version: 1
+display_information:
+  name: Community Helper (Python)
+  description: Community management helper framework and plugins
+  background_color: "#4A154B"
+features:
+  app_home:
+    home_tab_enabled: true
+    messages_tab_enabled: false
+    messages_tab_read_only_enabled: true
+  bot_user:
+    display_name: Community Helper
+    always_online: true
+  slash_commands:
+    - command: /rules
+      url: https://example.com/slack/commands
+      description: Manage community rules
+      usage_hint: "list | enable | disable"
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:history
+      - channels:read
+      - chat:write
+      - commands
+      - groups:history
+      - groups:read
+      - im:history
+      - im:read
+      - im:write
+      - mpim:history
+      - mpim:read
+      - users:read
+      - users:read.email
+settings:
+  event_subscriptions:
+    request_url: https://example.com/slack/events
+    bot_events:
+      - app_mention
+      - message.channels
+      - message.groups
+      - message.im
+      - message.mpim
+      - member_joined_channel
+      - team_join
+      - channel_created
+      - channel_rename
+      - channel_deleted
+      - channel_archive
+      - channel_unarchive
+  interactivity:
+    is_enabled: true
+    request_url: https://example.com/slack/interactivity
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false

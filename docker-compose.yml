@@ -1,0 +1,85 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: zebras
+      POSTGRES_USER: zebras
+      POSTGRES_PASSWORD: zebras
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zebras"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  zebras-http:
+    build: .
+    environment:
+      MODE: http
+      ZEBRAS_HTTP_HOST: 0.0.0.0
+      ZEBRAS_HTTP_PORT: 43117
+      LOG_LEVEL: INFO
+      # Slack tokens - set in an .env or override on run
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN:-}
+      SLACK_SIGNING_SECRET: ${SLACK_SIGNING_SECRET:-}
+      # DB / Redis
+      DATABASE_URL: postgresql+asyncpg://zebras:zebras@postgres:5432/zebras
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "43117:43117"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-}
+    command: ["http", "--log=stdout", "zebras-http:43117"]
+    depends_on:
+      zebras-http:
+        condition: service_started
+
+  zebras-socket:
+    build: .
+    environment:
+      MODE: socket
+      LOG_LEVEL: INFO
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN:-}
+      SLACK_APP_TOKEN: ${SLACK_APP_TOKEN:-}
+      DATABASE_URL: postgresql+asyncpg://zebras:zebras@postgres:5432/zebras
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  zebras-worker:
+    build: .
+    environment:
+      MODE: worker
+      LOG_LEVEL: INFO
+      DATABASE_URL: postgresql+asyncpg://zebras:zebras@postgres:5432/zebras
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
