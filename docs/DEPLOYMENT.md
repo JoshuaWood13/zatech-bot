@@ -7,7 +7,8 @@ Local Compose
   - `SLACK_SIGNING_SECRET=...` (for HTTP) or `SLACK_APP_TOKEN=...` (for Socket)
 - Bring up Postgres + Redis + HTTP app:
   - `docker compose up --build zebras-http`
-- App listens on `http://localhost:43117` (`/healthz` to check).
+  - Compose publishes container port 43117 to a random host port. Find it via `docker compose ps`.
+  - Health check endpoint: `/healthz` on the published host port.
 - For Socket Mode instead:
   - `docker compose up --build zebras-socket`
 - Optional worker:
@@ -17,7 +18,7 @@ Notes
 - DB DSN in compose points to the `postgres` service; migrations run automatically in the container entrypoint.
 - For HTTP mode with Slack, expose your machine publicly (or use a tunnel) and set Slack request URLs accordingly.
 - Logs are printed to container stdout.
-- To expose locally via a tunnel, see `docs/NGROK.md`.
+  
 
 Custom Deployment
 - Build image: `docker build -t zebras:latest .`

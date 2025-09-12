@@ -21,7 +21,6 @@ Docs
 - Security: `docs/SECURITY.md`
 - Development: `docs/DEVELOPMENT.md`
  - Deployment (Docker): `docs/DEPLOYMENT.md`
- - Ngrok tunneling: `docs/NGROK.md`
 
 Setup Details
 - Python: 3.11+
@@ -73,8 +72,8 @@ Limitations (current)
 - Slash commands are wired; actions/views are pending.
 - Idempotency/rate-limit middleware and rules enforcement are in progress.
 Docker Quick Start
-- HTTP mode: `docker compose up --build zebras-http` (exposes `http://localhost:43117`).
+- HTTP mode: `docker compose up --build zebras-http`.
+- Find the random host port mapped to 43117: `docker compose ps` (look under "Ports").
 - Socket mode: `docker compose up --build zebras-socket`.
 - Worker: `docker compose up --build zebras-worker`.
 - Set Slack envs in a top-level `.env` file or export them before running compose.
-- Expose via ngrok: `docker compose up --build zebras-http ngrok` then copy the `https://` URL from ngrok logs.

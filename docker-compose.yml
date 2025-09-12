@@ -37,21 +37,14 @@ services:
       DATABASE_URL: postgresql+asyncpg://zebras:zebras@postgres:5432/zebras
       REDIS_URL: redis://redis:6379/0
     ports:
-      - "43117:43117"
+      - "43117" # publish container port 43117 to a random host port
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
 
-  ngrok:
-    image: ngrok/ngrok:latest
-    environment:
-      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-}
-    command: ["http", "--log=stdout", "zebras-http:43117"]
-    depends_on:
-      zebras-http:
-        condition: service_started
+  # No ngrok service; use random host port mapping above and check via `docker compose ps`.
 
   zebras-socket:
     build: .
