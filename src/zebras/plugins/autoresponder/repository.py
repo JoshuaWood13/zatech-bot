@@ -33,15 +33,23 @@ class AutoResponderRepository:
             rid = res.scalar_one()
             return int(rid)
 
-    async def list(self, *, channel_id: Optional[str] = None, limit: int = 50) -> List[AutoResponderRule]:
+    async def list(self, *, channel_id: Optional[str] = None, limit: int = 50) -> List[dict]:
         async with self.engine.connect() as conn:
-            stmt = select(AutoResponderRule).order_by(AutoResponderRule.id.desc()).limit(limit)
+            stmt = select(
+                AutoResponderRule.id,
+                AutoResponderRule.enabled,
+                AutoResponderRule.match_type,
+                AutoResponderRule.case_sensitive,
+                AutoResponderRule.channel_id,
+                AutoResponderRule.phrase,
+                AutoResponderRule.response_text,
+            ).order_by(AutoResponderRule.id.desc()).limit(limit)
             if channel_id is None:
                 stmt = stmt.where(AutoResponderRule.channel_id.is_(None))
             else:
                 stmt = stmt.where((AutoResponderRule.channel_id == channel_id) | (AutoResponderRule.channel_id.is_(None)))
             res = await conn.execute(stmt)
-            return list(res.scalars())
+            return [dict(row._mapping) for row in res.all()]
 
     async def enabled_for_channel(self, channel_id: str) -> List[AutoResponderRule]:
         async with self.engine.connect() as conn:
@@ -58,4 +66,3 @@ class AutoResponderRepository:
     async def remove(self, rid: int) -> None:
         async with self.engine.begin() as conn:
             await conn.execute(delete(AutoResponderRule).where(AutoResponderRule.id == rid))
-
