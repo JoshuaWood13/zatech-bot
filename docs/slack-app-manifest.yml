@@ -41,6 +41,8 @@ oauth_config:
   scopes:
     bot:
       - chat:write
+      - chat:read
+      - chat:history
       - commands
       - users:read
       - channels:read

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any, Dict
+import importlib
+import importlib.metadata as md
 
 from sqlalchemy import text
 from slack_sdk.web.async_client import AsyncWebClient
@@ -19,6 +21,17 @@ def register(reg: Registry) -> None:
     async def debug_cmd(payload: Dict[str, Any]) -> Dict[str, Any]:
         ctx = get_context()
         results: list[str] = []
+        # Package info
+        try:
+            pkg_ver = md.version("zebras")
+        except Exception:
+            pkg_ver = "unknown"
+        try:
+            m = importlib.import_module("zebras")
+            module_path = getattr(m, "__file__", "unknown")
+        except Exception:
+            module_path = "unknown"
+        results.append(f"package: zebras {pkg_ver} @ {module_path}")
 
         # Slack auth check
         try:
@@ -55,4 +68,3 @@ def register(reg: Registry) -> None:
 
         text_out = "*ZEBRAS Debug*\n" + "\n".join(f"• {line}" for line in results)
         return {"response_type": "ephemeral", "text": text_out}
-

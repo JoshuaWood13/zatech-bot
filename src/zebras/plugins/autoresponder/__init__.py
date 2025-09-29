@@ -51,6 +51,9 @@ def register(reg: Registry) -> None:
         ts = e.get("ts")
         rules = await (await repo()).enabled_for_channel(channel)
         for r in rules:
+            # Defensive: ensure we have a rule object with expected attrs
+            if not hasattr(r, "phrase") or not hasattr(r, "response_text") or not hasattr(r, "match_type") or not hasattr(r, "case_sensitive"):
+                continue
             if _matches(r, text):
                 client = await _client()
                 await client.chat_postMessage(channel=channel, text=r.response_text, thread_ts=ts)
@@ -120,4 +123,3 @@ def register(reg: Registry) -> None:
             "response_type": "ephemeral",
             "text": "Usage:\n/auto add phrase:\"hello\" reply:\"Hi\" match:contains scope:here case:off\n/auto list [here|global]\n/auto enable <id> | disable <id> | delete <id>",
         }
-

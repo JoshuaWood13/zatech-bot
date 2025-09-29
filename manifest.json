@@ -1,0 +1,105 @@
+{
+    "display_information": {
+        "name": "Tech Support Bot",
+        "description": "ZaTech Engagement Bot for Responses, Automation & Support",
+        "background_color": "#000000",
+        "long_description": "ZaTech Engagement Bot for Responses, Automation & Support qwerty qwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwerty long character minimum too many words here needed and here is extra text lol haha"
+    },
+    "features": {
+        "app_home": {
+            "home_tab_enabled": true,
+            "messages_tab_enabled": false,
+            "messages_tab_read_only_enabled": true
+        },
+        "bot_user": {
+            "display_name": "Tech Support Bot",
+            "always_online": true
+        },
+        "slash_commands": [
+            {
+                "command": "/rules",
+                "url": "https://zebras.abduldavids.co.za/slack/commands",
+                "description": "Manage community rules",
+                "usage_hint": "list | bots on|off | top on|off | threads on|off | manage",
+                "should_escape": false
+            },
+            {
+                "command": "/invite-helper",
+                "url": "https://zebras.abduldavids.co.za/slack/commands",
+                "description": "Configure onboarding notifications and DM message",
+                "usage_hint": "set-channel #chan | notify on|off | message <text>",
+                "should_escape": false
+            },
+            {
+                "command": "/auto",
+                "url": "https://zebras.abduldavids.co.za/slack/commands",
+                "description": "Manage auto-responder rules",
+                "usage_hint": "add phrase:\"hello\" reply:\"Hi\" match:contains scope:here | list [here|global] | enable <id> | disable <id> | delete <id>",
+                "should_escape": false
+            },
+            {
+                "command": "/zebras-home",
+                "url": "https://zebras.abduldavids.co.za/slack/commands",
+                "description": "Debug: publish Home tab",
+                "usage_hint": "reload",
+                "should_escape": false
+            },
+            {
+                "command": "/debug",
+                "url": "https://zebras.abduldavids.co.za/slack/commands",
+                "description": "Quick connectivity and health check",
+                "usage_hint": "(no arguments)",
+                "should_escape": false
+            }
+        ]
+    },
+    "oauth_config": {
+        "scopes": {
+            "bot": [
+                "chat:write",
+                "views:write",
+                "app_home:read",
+                "commands",
+                "users:read",
+                "channels:read",
+                "groups:read",
+                "im:read",
+                "im:history",
+                "mpim:read",
+                "im:write",
+                "mpim:history",
+                "groups:history",
+                "channels:history",
+                "app_mentions:read"
+            ]
+        }
+    },
+    "settings": {
+        "event_subscriptions": {
+            "request_url": "https://zebras.abduldavids.co.za/slack/events",
+            "bot_events": [
+                "app_home_opened",
+                "app_mention",
+                "channel_archive",
+                "channel_created",
+                "channel_deleted",
+                "channel_rename",
+                "channel_unarchive",
+                "member_joined_channel",
+                "member_left_channel",
+                "message.channels",
+                "message.groups",
+                "message.im",
+                "message.mpim",
+                "team_join"
+            ]
+        },
+        "interactivity": {
+            "is_enabled": true,
+            "request_url": "https://zebras.abduldavids.co.za/slack/interactivity"
+        },
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": true,
+        "token_rotation_enabled": false
+    }
+}

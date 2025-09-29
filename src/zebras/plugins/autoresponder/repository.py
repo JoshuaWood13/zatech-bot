@@ -61,7 +61,11 @@ class AutoResponderRepository:
 
     async def toggle(self, rid: int, enabled: bool) -> None:
         async with self.engine.begin() as conn:
-            await conn.execute(update(AutoResponderRule).where(AutoResponderRule.id == rid).set({"enabled": enabled, "updated_at": datetime.now(timezone.utc)}))
+            await conn.execute(
+                update(AutoResponderRule)
+                .where(AutoResponderRule.id == rid)
+                .values(enabled=enabled, updated_at=datetime.now(timezone.utc))
+            )
 
     async def remove(self, rid: int) -> None:
         async with self.engine.begin() as conn:

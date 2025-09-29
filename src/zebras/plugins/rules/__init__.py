@@ -37,7 +37,7 @@ def register(reg: Registry) -> None:
             return {"response_type": "ephemeral", "text": f"Thread replies {'allowed' if val else 'blocked'} in <#{channel_id}>"}
         if text == "list":
             r = await repo.get(channel_id)
-            if not r:
+            if not r or not hasattr(r, "allow_bots"):
                 return {"response_type": "ephemeral", "text": "No rules set. Defaults: bots ON, top-level ON, threads ON"}
             return {
                 "response_type": "ephemeral",
@@ -123,7 +123,7 @@ def register(reg: Registry) -> None:
         ctx = get_context()
         repo = ChannelRuleRepository(ctx.engine)
         rules = await repo.get(channel)
-        if not rules:
+        if not rules or not hasattr(rules, "allow_bots"):
             return
         subtype = e.get("subtype")
         ts = e.get("ts")
