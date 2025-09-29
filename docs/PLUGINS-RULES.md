@@ -1,17 +1,19 @@
-**Rules Plugin (Stub)**
+**Rules Plugin**
 
 Purpose
 - Provide message governance: thread lockdowns, bot posting restrictions, channel posting controls, with audit logs.
 
 Current State
-- Slash command `/rules` implemented with a minimal stub (help and `list`).
-- No enforcement yet; evaluation engine scaffold exists in `src/zebras/rules/engine.py`.
+- Slash command `/rules` with: `list`, `bots on|off`, `top on|off`, `threads on|off`, and `manage` (opens a simple modal).
+- Enforcement active on `message` events:
+  - Blocks bot messages if disabled (and privately notifies the user).
+  - Blocks top‑level posts if disabled (asks users to reply in threads).
+  - Blocks thread replies if disabled.
+- Audit messages sent to the configured audit channel (if set in Invite Helper settings); failures are tolerated.
 
-Planned
-- Policies: thread lockdowns (allow/deny lists), bot restrictions, channel posting rules.
-- Actions: delete/soft actions on violations and audit logging to DB and a configured channel.
-- Admin: interactive modals and a Home tab to manage rules.
+Configuration
+- Use `/rules` in-channel to view or change rules.
+- Or use the Admin web UI (HTTP mode) to set per‑channel defaults.
 
-CLI/UX
-- `/rules` → help and list placeholders. Future: `enable/disable <rule>` and configuration flows.
-
+Notes
+- Deleting third‑party bot messages may be restricted by Slack; the plugin handles failures gracefully by still notifying users and auditing.

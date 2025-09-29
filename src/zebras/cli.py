@@ -21,10 +21,21 @@ import os
 
 
 def _load_plugins(reg: Registry) -> None:
-    # Load only the Auto Responder plugin per current requirements.
+    # Load core plugins.
     from .plugins.autoresponder import register as autoresponder_register
+    from .plugins.debug import register as debug_register
+    from .plugins.logging import register as logging_register
+    from .plugins.rules import register as rules_register
+    from .plugins.invite import register as invite_register
+    from .plugins.admin import register as admin_register
 
+    # Order can matter for readability (e.g., logging first), but all are independent.
+    logging_register(reg)
     autoresponder_register(reg)
+    rules_register(reg)
+    invite_register(reg)
+    admin_register(reg)
+    debug_register(reg)
 
 
 @click.group()

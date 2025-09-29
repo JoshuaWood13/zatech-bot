@@ -13,7 +13,7 @@ Architecture & Design
 - Plugins (general): `docs/PLUGINS.md`
 - Built-in Plugins:
   - Logging: `docs/PLUGINS-LOGGING.md`
-  - Rules (stub): `docs/PLUGINS-RULES.md`
+  - Rules: `docs/PLUGINS-RULES.md`
 
 Data & Ops
 - Persistence & Migrations: `docs/PERSISTENCE.md`
@@ -25,4 +25,3 @@ Project Management
 - Roadmap: `docs/ROADMAP.md`
 - TODO Board (Parity): `docs/TODO.md`
 - ADRs: `docs/ADRs/`
-
