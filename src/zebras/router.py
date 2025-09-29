@@ -24,7 +24,14 @@ class Router:
         self._handlers.setdefault(event_type, []).append(handler)
 
     async def dispatch(self, event: Dict[str, Any]) -> None:
-        etype = event.get("type") or event.get("event", {}).get("type")
+        # Slack Events API wraps real events in { type: "event_callback", event: { type: "message", ... } }
+        # Prefer the inner event.type when present.
+        etype = None
+        outer_type = event.get("type")
+        if outer_type == "event_callback" and isinstance(event.get("event"), dict):
+            etype = event.get("event", {}).get("type")
+        else:
+            etype = outer_type or event.get("event", {}).get("type")
         if not etype:
             self._log.debug("Ignoring event without type: %s", event)
             return
@@ -47,4 +54,3 @@ class Router:
             handler = composed
 
         await handler(event)
-

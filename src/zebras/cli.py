@@ -76,6 +76,8 @@ def http(host: str | None, port: int | None) -> None:
     """Run HTTP Events API server."""
     s = load_settings()
     setup_logging(s.log_level)
+    if not s.slack_bot_token:
+        raise SystemExit("SLACK_BOT_TOKEN required for http mode")
     router = Router()
     reg = Registry()
     _load_plugins(reg)
