@@ -28,8 +28,8 @@ services:
     environment:
       MODE: http
       MIGRATE_ON_START: "1"
-      ZEBRAS_HTTP_HOST: 0.0.0.0
-      ZEBRAS_HTTP_PORT: 43117
+      ZEBRAS_HTTP_HOST: ${ZEBRAS_HTTP_HOST:-0.0.0.0}
+      ZEBRAS_HTTP_PORT: ${ZEBRAS_HTTP_PORT:-43117}
       LOG_LEVEL: INFO
       # Slack tokens - set in an .env or override on run
       SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN:-}
@@ -38,7 +38,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://zebras:zebras@postgres:5432/zebras
       REDIS_URL: redis://redis:6379/0
     ports:
-      - "43117:43117" # bind host 43117 -> container 43117
+      - "${ZEBRAS_HTTP_PORT:-43117}:${ZEBRAS_HTTP_PORT:-43117}" # bind host -> container
     depends_on:
       postgres:
         condition: service_healthy
